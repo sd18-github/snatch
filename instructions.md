@@ -1,6 +1,6 @@
 # Project instructions for the AI agent
 
-This is a **learning project**. The user is using `snatch-1` to learn TypeScript and the surrounding toolchain (pnpm workspaces, Vite, React, Node, Socket.IO, ESLint, Prettier, Vitest, etc.) while building the game described in [`rules.md`](rules.md).
+This is a **learning project**. The user is using `snatch-2` to learn TypeScript and the surrounding toolchain (pnpm workspaces, Vite, React, Node, Socket.IO, ESLint, Prettier, Vitest, etc.) while building the game described in [`rules.md`](rules.md).
 
 Any AI agent working on this repo MUST follow the conventions below. They override default agent behavior wherever they conflict.
 
