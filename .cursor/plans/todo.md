@@ -3,13 +3,13 @@
 This is the master todo list for the Snatch game implementation, tracked per the instructions in [instructions.md](file:///c:/Users/shiva/OneDrive/Documents/Coding/Coding%20Projects/snatch-2/instructions.md).
 
 ## Phase 1: Shared Data Structures and Core Types
-- [ ] Define player, tile, and word structures in `[shared/src/types.ts](file:///c:/Users/shiva/OneDrive/Documents/Coding/Coding%20Projects/snatch-2/shared/src/types.ts)`
-- [ ] Define game state structure (tile pool, player states, scores, turn state)
-- [ ] Define Socket.IO event payload contracts
+- [x] Define player, tile, and word structures in `[shared/src/types.ts](file:///c:/Users/shiva/OneDrive/Documents/Coding/Coding%20Projects/snatch-2/shared/src/types.ts)`
+- [x] Define game state structure (tile pool, player states, scores, turn state)
+- [x] Define Socket.IO event payload contracts
 
 ## Phase 2: Core Game Logic Engine
-- [ ] Implement tile bag initialization and flipping logic in `[shared/src/game.ts](file:///c:/Users/shiva/OneDrive/Documents/Coding/Coding%20Projects/snatch-2/shared/src/game.ts)`
-- [ ] Implement word validation (dictionary lookup interface)
+- [x] Implement tile bag initialization and flipping logic in `[shared/src/game.ts](file:///c:/Users/shiva/OneDrive/Documents/Coding/Coding%20Projects/snatch-2/shared/src/game.ts)`
+- [x] Implement word validation (dictionary lookup interface)
 - [ ] Implement claim rules (letters from pool, length >= 4)
 - [ ] Implement steal rules (single source requiring pool letter, multi-source, self-steals, affix/root heuristic check)
 - [ ] Implement scoring logic (+2 per letter gained, -2 per letter lost, -1 for invalid dictionary shout)

@@ -6,35 +6,38 @@ Any AI agent working on this repo MUST follow the conventions below. They overri
 
 ---
 
-## Teaching style
+## Teaching style (Tutorial Mode)
 
 1. **Explain before you do.**
-   Before creating or editing any file that introduces a new tool, concept, or pattern, first write a short explanation of:
+   Before suggesting a new file, tool, or concept, first write a short explanation of:
    - **What** the tool/file/concept is (one sentence).
    - **Why** we are using it here (one to three sentences).
    - **Alternatives** we considered, briefly, when the choice is non-obvious.
 
-2. **Small chunks, then wait.**
-   Deliver work in **small steps**, typically:
-   - one file per step, or
-   - one config concept per step, or
-   - one cohesive group of trivial sibling files (e.g., `.gitignore` + `.editorconfig`) per step.
+2. **Create empty files & boilerplate only.**
+   - The agent is responsible for creating any new files and generating basic boilerplate/skeletons (e.g. imports, empty classes, or function signatures).
+   - The agent **must not** write the core logic or type details. Instead, the agent tells the user what they need to write and why.
 
-   After each step, **stop and wait for the user to acknowledge** before moving on. Do not chain multiple new concepts in one turn.
+3. **Small chunks, then wait.**
+   - Deliver work in **small steps** (typically one file or concept per step).
+   - After explaining the goal, creating the boilerplate, and instructing the user on what to write, **stop and wait for the user to implement the code** and acknowledge. Do not chain multiple files or steps in one turn.
 
-3. **Show, then annotate.**
-   When introducing a config file or piece of code:
-   - Show the full contents of the file.
-   - Walk through any non-obvious lines individually.
-   - Skip narrating boilerplate the user has clearly seen before (don't re-explain `"private": true` every time).
+4. **Check the user's work.**
+   - Once the user implements the code and signals they are ready (e.g., "done", "ok", "next"), the agent **must read the file** to inspect their work.
+   - Provide constructive feedback/corrections or confirm it is correct and move to the next small step.
 
-4. **Glossary as you go.**
+5. **Show, then annotate.**
+   When explaining code:
+   - Show the proposed file boilerplate/skeleton.
+   - Walk through the structure and why it's set up that way.
+
+6. **Glossary as you go.**
    The first time a piece of jargon appears, give a **one-sentence plain-English definition** inline. Examples of terms to define on first use: workspace, monorepo, transpile, bundler, dev server, HMR, ack, discriminated union, generic, flat config, peer dependency, lockfile, ESM vs CJS, type-only import, declaration file, ambient types.
 
-5. **No skipping ahead.**
-   Do not implement multiple files or multiple plan todos in one turn unless they are trivial siblings of something already explained in this session. When in doubt, stop and ask.
+7. **No skipping ahead.**
+   Do not assign multiple files or multiple plan todos in one turn. When in doubt, stop and ask.
 
-6. **Cite paths.** When you mention a file you're about to create or edit, link it: `[server/src/io.ts](server/src/io.ts)`.
+8. **Cite paths.** When you mention a file to create or edit, link it: `[server/src/io.ts](server/src/io.ts)`.
 
 ---
 
