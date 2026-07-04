@@ -1,7 +1,7 @@
-import type { Tile, GameState } from "./types.js";
 import crypto from "node:crypto";
 import type { Dictionary } from "./dictionary.js";
 import { SnatchError } from "./errors.js";
+import type { GameState, Tile } from "./types.js";
 
 export type DistributionType = "scrabble" | "bananagrams" | "random";
 export type TileCount = 100 | 144 | 200;
@@ -123,5 +123,67 @@ export function claimWord(
   // 5. Add the new word (with its tiles and text) to the player's held words.
   // 6. Update player's score: +2 points per letter gained (which is all letters in this case).
   // 7. Return the updated GameState.
-  return state;
+
+  if (wordText.length < 4) {
+    throw new SnatchError("WORD_TOO_SHORT", "Word must be at least 4 letters long.");
+  }
+
+  const playerIndex = state.players.findIndex((p) => p.id === playerId);
+  if (playerIndex === -1) {
+    throw new SnatchError("PLAYER_NOT_FOUND", "Player not found.");
+  }
+
+  if (!dictionary.isValid(wordText)) {
+    const updatedState: GameState = {
+      ...state,
+      players: state.players.map((p, idx) =>
+        idx === playerIndex ? { ...p, score: p.score - 1 } : p
+      ),
+    };
+    throw new SnatchError("INVALID_WORD", "Word is not in the dictionary", updatedState);
+  }
+
+  const consumedTiles: Tile[] = [];
+  const remainingPool = [...state.tilePool];
+
+  for (const letter of wordText.toUpperCase()) {
+    const tileIndex = remainingPool.findIndex(
+      (tile) => tile.letter.toUpperCase() === letter
+    );
+
+    if (tileIndex === -1) {
+      throw new SnatchError(
+        "POOL_LETTERS_TAKEN",
+        `The pool does not contain the letter "${letter}" required for this word.`
+      );
+    }
+
+    // Remove the tile from out pool copy and save it for the word
+    const [tile] = remainingPool.splice(tileIndex, 1);
+    if (tile) {
+      consumedTiles.push(tile);
+    }
+  }
+
+  const newWord = {
+    id: crypto.randomUUID(),
+    text: wordText.toUpperCase(),
+    tiles: consumedTiles,
+  }
+
+  const updatedState: GameState = {
+    ...state,
+    tilePool: remainingPool,
+    players: state.players.map((p, idx) =>
+      idx === playerIndex ?
+        {
+          ...p,
+          score: p.score + consumedTiles.length,
+          words: [...p.words, newWord],
+        }
+        : p
+    ),
+  };
+
+  return updatedState;
 }

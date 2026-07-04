@@ -1,34 +1,105 @@
 import { describe, it, expect } from "vitest";
-import { initializeBag, shuffleBag, flipTile } from "./game.js";
+import { initializeBag, shuffleBag, flipTile, claimWord } from "./game.js";
 import { SetDictionary } from "./dictionary.js";
 import type { GameState } from "./types.js";
+import type { SnatchError } from "./errors.js";
 
 describe("initializeBag", () => {
   it("should initialize a bag of 100 tiles for scrabble", () => {
-    // TODO: Call initializeBag() and expect the returned array length to be 100.
+    const bag = initializeBag();
+    expect(bag.length).toBe(98);
   });
 
   it("should contain the correct frequency of letters", () => {
-    // TODO: Call initializeBag() and verify that the letter counts match the frequencies:
-    // E.g., 'E' should have 12 occurrences, 'A' should have 9, 'Z' should have 1.
+    const bag = initializeBag();
+    const eCount = bag.filter((tile) => tile.letter === "E").length;
+    expect(eCount).toBe(12);
+
+    const aCount = bag.filter((tile) => tile.letter === "A").length;
+    expect(aCount).toBe(9);
+
+    const zCount = bag.filter((tile) => tile.letter === "Z").length;
+    expect(zCount).toBe(1);
   });
 });
 
 describe("shuffleBag", () => {
   it("should shuffle the bag of tiles randomly", () => {
-    // TODO:
-    // 1. Initialize a bag.
-    // 2. Shuffle it using shuffleBag().
-    // 3. Verify that the shuffled bag has the same length.
-    // 4. Verify that the letter order has changed (expect the mapped letters of original and shuffled not to equal).
+    const bag = initializeBag();
+    const shuffledBag = shuffleBag(bag);
+    expect(shuffledBag.length).toBe(bag.length);
+    const originalLetters = bag.map(t => t.letter);
+    const shuffledLetters = shuffledBag.map(t => t.letter);
+    expect(originalLetters).not.toEqual(shuffledLetters);
+    expect(originalLetters.sort()).toEqual(shuffledLetters.sort());
   });
 });
 
 describe("SetDictionary", () => {
   it("should validate words case-insensitively", () => {
-    // TODO:
-    // 1. Instantiate SetDictionary with a list: ["Apple", "BANANA", "cherry"].
-    // 2. Assert that isValid("apple"), isValid("banana"), and isValid("CHERRY") all return true.
-    // 3. Assert that isValid("grape") returns false.
+    const dict = new SetDictionary(["Armageddon", "BABYLON", "catharsis"]);
+    expect(dict.isValid("armageddon")).toBe(true);
+    expect(dict.isValid("babylon")).toBe(true);
+    expect(dict.isValid("CATHARSIS")).toBe(true);
+    expect(dict.isValid("halitosis")).toBe(false);
   });
 });
+
+describe("claimWord", () => {
+  const dictionary = new SetDictionary(["KILN", "PLOW", "POOL", "POW"]);
+
+  const createInitialState = (): GameState => ({
+    status: "playing",
+    players: [
+      { id: "P1", name: "Keki", score: 5, words: [] },
+      { id: "P2", name: "William", score: 0, words: [] },
+    ],
+    tileBag: [],
+    tilePool: [
+      { id: "1", letter: "P" },
+      { id: "2", letter: "O" },
+      { id: "3", letter: "O" },
+      { id: "4", letter: "L" },
+      { id: "5", letter: "X" },
+      { id: "6", letter: "Y" },
+    ],
+    activePlayerId: "P1",
+    flipTimer: 10,
+  });
+
+  it("should successfully claim a word from the pool", () => {
+    const state = createInitialState();
+    const result = claimWord(state, "P1", "POOL", dictionary);
+
+    expect(result.players[0]?.score).toBe(9);
+    expect(result.players[0]?.words[0]?.text).toBe("POOL");
+    expect(result.tilePool.map(t => t.letter)).toEqual(["X", "Y"]);
+  })
+
+  it("should throw WORD_TOO_SHORT if word length < 4", () => {
+    const state = createInitialState();
+    expect(() => claimWord(state, "P1", "POW", dictionary)).toThrowError(
+      expect.objectContaining({ code: "WORD_TOO_SHORT" })
+    );
+  });
+
+  it("should throw INVALID_WORD and deduct 1 point if not in dictionary", () => {
+    const state = createInitialState();
+
+    try {
+      claimWord(state, "P1", "PLOO", dictionary);
+      expect.fail("Should have thrown SnatchError");
+    } catch (err) {
+      const error = err as SnatchError;
+      expect(error.code).toBe("INVALID_WORD");
+      expect(error.state?.players[0]?.score).toBe(4);
+    }
+  });
+
+  it("should throw POOL_LETTERS_TAKEN if pool lacks letters", () => {
+    const state = createInitialState();
+    expect(() => claimWord(state, "P1", "PLOW", dictionary)).toThrowError(
+      expect.objectContaining({ code: "POOL_LETTERS_TAKEN" })
+    );
+  });
+})

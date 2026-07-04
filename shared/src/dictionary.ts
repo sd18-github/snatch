@@ -15,12 +15,10 @@ export class SetDictionary implements Dictionary {
   private words: Set<string>;
 
   constructor(wordList: string[]) {
-    // TODO: Store all words in a Set, converting them to uppercase for case-insensitivity
-    this.words = new Set();
+    this.words = new Set(wordList.map(w => w.toLowerCase()));
   }
 
   isValid(word: string): boolean {
-    // TODO: Check if the word (converted to uppercase) exists in the Set
-    return false;
+    return this.words.has(word.toLowerCase());
   }
 }
