@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
-import { initializeBag, shuffleBag, flipTile, claimWord } from "./game.js";
+import { initializeBag, shuffleBag, flipTile, claimWord, isValidStealMorphology } from "./game.js";
 import { SetDictionary } from "./dictionary.js";
+import { ErrorCodes } from "./errorCodes.js";
 import type { GameState } from "./types.js";
 import type { SnatchError } from "./errors.js";
 
@@ -65,6 +66,7 @@ describe("claimWord", () => {
     ],
     activePlayerId: "P1",
     flipTimer: 10,
+    log: [],
   });
 
   it("should successfully claim a word from the pool", () => {
@@ -79,7 +81,7 @@ describe("claimWord", () => {
   it("should throw WORD_TOO_SHORT if word length < 4", () => {
     const state = createInitialState();
     expect(() => claimWord(state, "P1", "POW", dictionary)).toThrowError(
-      expect.objectContaining({ code: "WORD_TOO_SHORT" })
+      expect.objectContaining({ code: ErrorCodes.WORD_TOO_SHORT })
     );
   });
 
@@ -91,7 +93,7 @@ describe("claimWord", () => {
       expect.fail("Should have thrown SnatchError");
     } catch (err) {
       const error = err as SnatchError;
-      expect(error.code).toBe("INVALID_WORD");
+      expect(error.code).toBe(ErrorCodes.INVALID_WORD);
       expect(error.state?.players[0]?.score).toBe(4);
     }
   });
@@ -99,7 +101,37 @@ describe("claimWord", () => {
   it("should throw POOL_LETTERS_TAKEN if pool lacks letters", () => {
     const state = createInitialState();
     expect(() => claimWord(state, "P1", "PLOW", dictionary)).toThrowError(
-      expect.objectContaining({ code: "POOL_LETTERS_TAKEN" })
+      expect.objectContaining({ code: ErrorCodes.POOL_LETTERS_TAKEN })
     );
   });
 })
+
+describe("isValidStealMorphology", () => {
+  it("should reject suffix-only extensions of a single source word", () => {
+    expect(isValidStealMorphology(["TEAR"], "TEARS")).toBe(false);
+  });
+
+  it("should reject prefix-only extensions of a single source word", () => {
+    expect(isValidStealMorphology(["BUILD"], "REBUILD")).toBe(false);
+  });
+
+  it("should reject combined prefix and suffix extensions", () => {
+    expect(isValidStealMorphology(["BUILD"], "REBUILDING")).toBe(false);
+  });
+
+  it("should allow valid steals where letters are rearranged", () => {
+    expect(isValidStealMorphology(["TEAR"], "STARE")).toBe(true);
+  });
+
+  it("should reject extensions of one of multiple source words", () => {
+    expect(isValidStealMorphology(["RATE", "RANGE", "READ"], "REREADING")).toBe(false);
+  });
+
+  it("should not reject non-standard prefix extension", () => {
+    expect(isValidStealMorphology(["RINK"], "BRINKS")).toBe(true);
+  });
+
+  it("should not reject non-standard suffix extension", () => {
+    expect(isValidStealMorphology(["LIQUOR"], "LIQUORICE")).toBe(true);
+  });
+});

@@ -96,8 +96,8 @@ Scores are tracked in **points** (integer; implementation may allow negative tot
 
 After each **successful** claim or steal (any move that changes which letters sit in front of which player or leaves the pool), update scores as follows:
 
-- **+2 points** for each letter **gained** by a player on their side of the table (letters that were **not** in front of that player before the move, but are after—typically from the pool or from an opponent’s word(s) taken into their new word).
-- **−2 points** for each letter **lost** by a player from their side (letters that were in front of them before, but are not after—because a word was stolen, merged away, or broken up by another player’s move).
+- **+1 point** for each letter **gained** by a player on their side of the table (letters that were **not** in front of that player before the move, but are after—typically from the pool or from an opponent’s word(s) taken into their new word).
+- **−1 point** for each letter **lost** by a player from their side (letters that were in front of them before, but are not after—because a word was stolen, merged away, or broken up by another player’s move).
 
 **Pool:** Letters in the face-up pool belong to **no** player. Moving letters **from the pool** to your words counts as **you gaining** those letters. Moving letters **from your words** to the pool (if any rule allows that) would count as **you losing** them.
 
@@ -138,7 +138,7 @@ Idea: after a player successfully places a word, **another player may “challen
 | Steal | Own and others’ words; 1 source → all its letters + **≥1** from pool; 2+ sources → **all** letters from **each** source + pool **if needed**; dictionary + affix rules apply |
 | Same-root / affix | Ideal: NLP/stem; MVP: blocked prefixes + suffix heuristics |
 | Ties | Server receive order; first valid wins; others get explicit errors |
-| Scoring | +2 per letter **gained** on your side; −2 per letter **lost** from your side; own-only no-pool reform/merge → **0**; invalid dictionary attempt → **−1** to submitter, no board change |
+| Scoring | +1 per letter **gained** on your side; −1 per letter **lost** from your side; own-only no-pool reform/merge → **0**; invalid dictionary attempt → **−1** to submitter, no board change |
 | Challenges | **Optional** — vote among others, challenger breaks tie; on success revert tiles + challenged loses points for that word; details TBD |
 
 ---
@@ -147,5 +147,5 @@ Idea: after a player successfully places a word, **another player may “challen
 
 - **Initial:** Turns, claims (4+), steals + affix philosophy, simultaneous resolution as above.
 - **Update:** Steals allowed **from your own** words; steals may merge **two or more** held words using **all** letters from each, with pool letters **only if needed** (single-source steals still require **≥1** pool letter).
-- **Update:** Own-only, no-pool **reform/merge** is **score-neutral**; **scoring** (+2/−2 per letter gained/lost, −1 for invalid dictionary attempt); **optional challenges** sketched (vote, challenger tiebreak, revert + point undo).
+- **Update:** Own-only, no-pool **reform/merge** is **score-neutral**; **scoring** (+1/−1 per letter gained/lost, −1 for invalid dictionary attempt); **optional challenges** sketched (vote, challenger tiebreak, revert + point undo).
 - **Update:** Multi-source steals subject to same affix/root intent; MVP heuristic for multi-source merges (substring + affix remainder).

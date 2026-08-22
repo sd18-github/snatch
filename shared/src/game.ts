@@ -1,7 +1,8 @@
 import crypto from "node:crypto";
 import type { Dictionary } from "./dictionary.js";
 import { SnatchError } from "./errors.js";
-import type { GameState, Tile } from "./types.js";
+import { ErrorCodes } from "./errorCodes.js";
+import type { GameState, Tile, Word } from "./types.js";
 
 export type DistributionType = "scrabble" | "bananagrams" | "random";
 export type TileCount = 100 | 144 | 200;
@@ -115,24 +116,19 @@ export function claimWord(
   wordText: string,
   dictionary: Dictionary
 ): GameState {
-  // TODO: Implement the claim logic:
+  
   // 1. Verify word length is >= 4.
-  // 2. Validate word against the dictionary. (If invalid, deduct 1 point and return new state).
-  // 3. Verify all letters of the word are available in the face-up pool.
-  // 4. Remove the consumed tiles from the pool.
-  // 5. Add the new word (with its tiles and text) to the player's held words.
-  // 6. Update player's score: +2 points per letter gained (which is all letters in this case).
-  // 7. Return the updated GameState.
-
   if (wordText.length < 4) {
-    throw new SnatchError("WORD_TOO_SHORT", "Word must be at least 4 letters long.");
+    throw new SnatchError(ErrorCodes.WORD_TOO_SHORT, "Word must be at least 4 letters long.");
   }
 
+  // 2. Validate word against the dictionary. (If invalid, deduct 1 point and return new state).
   const playerIndex = state.players.findIndex((p) => p.id === playerId);
   if (playerIndex === -1) {
-    throw new SnatchError("PLAYER_NOT_FOUND", "Player not found.");
+    throw new SnatchError(ErrorCodes.PLAYER_NOT_FOUND, "Player not found.");
   }
 
+  // 3. Verify all letters of the word are available in the face-up pool.
   if (!dictionary.isValid(wordText)) {
     const updatedState: GameState = {
       ...state,
@@ -140,9 +136,10 @@ export function claimWord(
         idx === playerIndex ? { ...p, score: p.score - 1 } : p
       ),
     };
-    throw new SnatchError("INVALID_WORD", "Word is not in the dictionary", updatedState);
+    throw new SnatchError(ErrorCodes.INVALID_WORD, "Word is not in the dictionary", updatedState);
   }
 
+  // 4. Remove the consumed tiles from the pool.
   const consumedTiles: Tile[] = [];
   const remainingPool = [...state.tilePool];
 
@@ -153,7 +150,7 @@ export function claimWord(
 
     if (tileIndex === -1) {
       throw new SnatchError(
-        "POOL_LETTERS_TAKEN",
+        ErrorCodes.POOL_LETTERS_TAKEN,
         `The pool does not contain the letter "${letter}" required for this word.`
       );
     }
@@ -171,6 +168,8 @@ export function claimWord(
     tiles: consumedTiles,
   }
 
+  // 5. Add the new word (with its tiles and text) to the player's held words; and
+  // 6. Update player's score: +2 points per letter gained (which is all letters in this case).
   const updatedState: GameState = {
     ...state,
     tilePool: remainingPool,
@@ -185,5 +184,109 @@ export function claimWord(
     ),
   };
 
+  // 7. Return the updated GameState.
   return updatedState;
 }
+
+/**
+ * Heuristic helper to check if a steal violates morphology / affix rules.
+ * 
+ * MVP Rules:
+ * 1. Disallow a fixed list of productive prefixes (e.g., "RE-", "UN-", "DE-", "PRE-", "DIS-", "IN-", "MIS-", "ANTI-", "NON-", "POST-").
+ * 2. Disallow suffix-only extensions of a single source word WITHOUT rearrangement of that word's letters
+ *    (e.g., TEAR -> TEARS, PEEL -> PEELED, JUMP -> JUMPING).
+ * 3. For multi-source merges, reject when a whole source word appears in order as a contiguous substring
+ *    of the target word AND the remainder looks like a blocked affix/inflection.
+ */
+export function isValidStealMorphology(
+  sourceWords: string[],
+  targetWordText: string
+): boolean {
+  const BLOCKED_PREFIXES = ["RE", "UN", "DE", "PRE", "DIS", "IN", "MIS", "ANTI", "NON", "POST"].concat([""]);
+  const BLOCKED_SUFFIXES = ["S", "ES", "ED", "ING", "ER", "EST", "LY", "Y", "MENT", "ABLE", "IBLE", "ION", "TION", "ITY", "NESS"].concat([""]);
+
+  const ucSourceWords = sourceWords.map(w => w.toUpperCase());
+  const ucTargetWord = targetWordText.toUpperCase();
+
+  for(const ucSourceWord of ucSourceWords) {
+    for(const prefix of BLOCKED_PREFIXES) {
+      for(const suffix of BLOCKED_SUFFIXES) {
+        if((prefix + ucSourceWord + suffix) === ucTargetWord) {
+          return false;
+        }
+      }
+    }
+  }
+
+  return true;
+}
+
+/**
+ * Helper to search the board (face-up pool and active words) to find matching tiles for a target word.
+ * Returns the source Word objects and the pool Tile objects needed to form the target word.
+ * Returns null if the target word cannot be spelled using the available tiles on the board.
+ * 
+ * Priority Rules:
+ * 1. Claim (pool only).
+ * 2. Single-Source Steal (one held word + pool tiles, pool usage > 0).
+ * 3. Multi-Source Steal (2+ held words + pool tiles, pool usage >= 0).
+ */
+export function findTilesForWord(
+  state: GameState,
+  targetWordText: string
+): { sources: Word[]; poolTiles: Tile[] } | null {
+  // TODO: Implement the search algorithm.
+  // 1. Normalize the target word text to uppercase.
+  // 2. Try to spell using only face-up pool tiles (Claim).
+  // 3. Try to spell using exactly one active word on the board + at least one pool tile (Single-Source Steal).
+  // 4. Try to spell using two or more active words + zero or more pool tiles (Multi-Source Steal).
+  // Return null if no combination works.
+  return null;
+}
+
+/**
+ * Validates and executes a player's submission of a new word (either a claim or a steal).
+ * Always returns the new, updated GameState (even for invalid or impossible attempts, so that they are logged).
+ * Throws a SnatchError on invalid or impossible attempts so the server can handle the response.
+ */
+export function submitWord(
+  state: GameState,
+  playerId: string,
+  wordText: string,
+  dictionary: Dictionary
+): GameState {
+  // TODO: Implement the unified word submission state machine:
+  // 
+  // 1. Normalize & check length:
+  //    - Normalize wordText to uppercase.
+  //    - If wordText.length < 4, it is impossible. Append an "impossible" log entry to the state and throw a SnatchError with LETTERS_NOT_AVAILABLE.
+  //
+  // 2. Find player name:
+  //    - Locate the player by playerId. If not found, throw a SnatchError with PLAYER_NOT_FOUND.
+  //
+  // 3. Search for matching tiles on the board:
+  //    - Call findTilesForWord. If it returns null, the move is impossible.
+  //      Append an "impossible" log entry to state.log and throw a SnatchError with LETTERS_NOT_AVAILABLE.
+  //
+  // 4. Validate dictionary:
+  //    - If !dictionary.isValid(wordText):
+  //      * Deduct 1 point from the player.
+  //      * Append an "invalid_word" log entry to state.log.
+  //      * Throw SnatchError with INVALID_WORD (passing the updated state).
+  //
+  // 5. Validate morphology (affix rules):
+  //    - If sources.length > 0 (it is a steal) and !isValidStealMorphology(sources, targetWordText):
+  //      * Append an "impossible" log entry to state.log.
+  //      * Throw SnatchError with AFFIX_RULE_VIOLATION (passing the updated state).
+  //
+  // 6. Execute state transitions:
+  //    - Construct log entry ("valid_claim" or "valid_steal").
+  //    - Remove source words from owners.
+  //    - Remove tiles from pool.
+  //    - Add new word to player's words.
+  //    - Calculate score updates (+1 point per letter gained on player's side, -1 point per letter lost from opponent's side).
+  //    - Append log entry to state and return the updated GameState.
+
+  return state;
+}
+

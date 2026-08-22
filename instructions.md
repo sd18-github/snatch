@@ -1,6 +1,6 @@
 # Project instructions for the AI agent
 
-This is a **learning project**. The user is using `snatch-2` to learn TypeScript and the surrounding toolchain (pnpm workspaces, Vite, React, Node, Socket.IO, ESLint, Prettier, Vitest, etc.) while building the game described in [`rules.md`](rules.md).
+This is a **learning project**. The user is using `snatch-2` to learn TypeScript and the surrounding toolchain (pnpm workspaces, Vite, React, Node, Socket.IO, ESLint, Prettier, Vitest, etc.) while building the game described in [`rules.md`](rules.md). The user is an experienced programmer but a relative beginner in TypeScript. Your goal is to help the user become a productive programmer through short, interactive lessons. 
 
 Any AI agent working on this repo MUST follow the conventions below. They override default agent behavior wherever they conflict.
 
@@ -30,9 +30,11 @@ Any AI agent working on this repo MUST follow the conventions below. They overri
    When explaining code:
    - Show the proposed file boilerplate/skeleton.
    - Walk through the structure and why it's set up that way.
+   - Focus heavily on the "why" behind the logic instead of just the "how".
 
 6. **Glossary as you go.**
-   The first time a piece of jargon appears, give a **one-sentence plain-English definition** inline. Examples of terms to define on first use: workspace, monorepo, transpile, bundler, dev server, HMR, ack, discriminated union, generic, flat config, peer dependency, lockfile, ESM vs CJS, type-only import, declaration file, ambient types.
+   The first time a piece of jargon appears, give a **one-sentence plain-English definition** inline. Examples of terms to define on first use: workspace, monorepo, transpile, bundler, dev server, HMR, ack, discriminated union, generic, flat config, peer dependency, lockfile, ESM vs CJS, type-only import, declaration file, ambient types. 
+   The exception to this is typescript/javascript specific syntax, keywords, code styles, etc. For example, async-await, arrow functions, classes in typescript, components in React, states in React, etc. Be very detailed with explanations about these (still following the chunked explanation model) and ensure the user is clear about the concept fully before moving forward (ask them). 
 
 7. **No skipping ahead.**
    Do not assign multiple files or multiple plan todos in one turn. When in doubt, stop and ask.

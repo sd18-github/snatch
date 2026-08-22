@@ -33,6 +33,24 @@ export interface Player {
 export type GameStatus = "waiting" | "playing" | "gameover";
 
 /**
+ * The types of events that can be recorded in the running game log.
+ */
+export type LogEntryType = "valid_claim" | "valid_steal" | "invalid_word" | "impossible";
+
+/**
+ * Represents a single action/attempt recorded in the running game log.
+ */
+export interface LogEntry {
+  id: string;
+  timestamp: number;
+  playerId: string;
+  playerName: string;
+  word: string;
+  type: LogEntryType;
+  sourceWords?: string[]; // The text of any words that were stolen
+}
+
+/**
  * Represents the complete state of a game room at a point in time.
  */
 export interface GameState {
@@ -42,4 +60,24 @@ export interface GameState {
   tilePool: Tile[];
   activePlayerId: string | null;
   flipTimer: number;
+  log: LogEntry[];
 }
+
+
+/**
+ * Socket.IO events sent from the client to the server.
+ */
+export interface ClientToServerEvents {
+  joinRoom: (name: string, roomCode: string) => void;
+  flipTile: () => void;
+  submitWord: (word: string) => void;
+}
+
+/**
+ * Socket.IO events sent from the server to the client.
+ */
+export interface ServerToClientEvents {
+  gameStateUpdate: (state: GameState) => void;
+  gameError: (payload: { message: string, code?: string}) => void;
+}
+
